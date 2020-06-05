@@ -4,7 +4,8 @@ import re
 import os
 import datetime
 import glob
-import cStringIO
+# import
+from io import StringIO
 
 # REGEX_NO_TICKS = re.compile('`')
 # REGEX_INT_SIZE = re.compile('int\(\d+\)')
@@ -33,7 +34,7 @@ def versioned(filename):
     if not files:
         return filename
 
-    files = map(lambda x: REGEX_FILE_COUNTER.search(x, re.I), files)
+    files = [REGEX_FILE_COUNTER.search(x, re.I) for x in files]
     file_counters = [i.group('i') for i in files if i]
 
     if file_counters:
@@ -70,6 +71,9 @@ def create_pnames(db, tag=None, date_format="%Y%m%d", no_date=False):
     return ("%s.%s" % (basename, "patch.sql"),
             "%s.%s" % (basename, "revert.sql"))
 
+
+def cmp(a, b):
+    return (a > b) - (a < b)
 
 def compare_version(x, y, separator=r'[.-]'):
     """Return negative if version x<y, zero if x==y, positive if x>y.
@@ -110,7 +114,7 @@ class PatchBuffer(object):
 
     def __init__(self, name, filters, tpl, ctx, version_filename=False):
         """Inits the PatchBuffer class"""
-        self._buffer = cStringIO.StringIO()
+        self._buffer = StringIO()
         self.name = name
         self.filters = filters
         self.tpl = tpl
@@ -137,6 +141,7 @@ class PatchBuffer(object):
             data = f(data)
 
         self.ctx['data'] = data
+        # self.ctx['data'] = data.encode('ascii', 'ignore').decode('ascii')
 
         fh.write(self.tpl % self.ctx)
         fh.close()

@@ -10,6 +10,8 @@ import syncdb
 import utils
 import warnings
 
+
+
 __author__ = """
 Mitch Matuson
 Mustafa Ozgur
@@ -26,16 +28,15 @@ warnings.simplefilter("ignore", DeprecationWarning)
 
 try:
     import pymysql
-except ImportErrorPyMySQL:
-    print "Error: Missing Required Dependency PyMySQL."
+except ImportError:
+    print("Error: Missing Required Dependency PyMySQL.")
     sys.exit(1)
 
 try:
     import schemaobject
-except ImportError:
-    print "Error: Missing Required Dependency SchemaObject"
+except ImportError as e:
+    print("Error: Missing Required Dependency SchemaObject:%s" %e)
     sys.exit(1)
-
 APPLICATION_VERSION = __version__
 APPLICATION_NAME = "Schema Sync"
 LOG_FILENAME = "schemasync.log"
@@ -47,7 +48,6 @@ PATCH_TPL = """--
 -- Server Version: %(server_version)s
 -- Apply To: %(target_host)s/%(target_database)s
 --
-
 %(data)s"""
 
 
@@ -123,7 +123,7 @@ def parse_cmd_line(fn):
         options, args = parser.parse_args(sys.argv[1:])
 
         if options.show_version:
-            print APPLICATION_NAME, __version__
+            print(APPLICATION_NAME, __version__)
             return 0
 
         if (not args) or (len(args) != 2):
@@ -150,16 +150,16 @@ def app(sourcedb='', targetdb='', version_filename=False,
     options = locals()
 
     if not os.path.isabs(output_directory):
-        print "Error: Output directory must be an absolute path. Quiting."
+        print("Error: Output directory must be an absolute path. Quiting.")
         return 1
 
     if not os.path.isdir(output_directory):
-        print "Error: Output directory does not exist. Quiting."
+        print("Error: Output directory does not exist. Quiting.")
         return 1
 
     if not log_directory or not os.path.isdir(log_directory):
         if log_directory:
-            print "Log directory does not exist, writing log to %s" % output_directory
+            print("Log directory does not exist, writing log to %s" % output_directory)
         log_directory = output_directory
 
     logging.basicConfig(filename=os.path.join(log_directory, LOG_FILENAME),
@@ -174,7 +174,6 @@ def app(sourcedb='', targetdb='', version_filename=False,
     if not sourcedb:
         logging.error("Source database URL not provided. Exiting.")
         return 1
-
     source_info = schemaobject.connection.parse_database_url(sourcedb)
     if not source_info:
         logging.error("Invalid source database URL format. Exiting.")
@@ -225,7 +224,7 @@ def app(sourcedb='', targetdb='', version_filename=False,
                 app(sourcedb=sourcedb, targetdb=targetdb, version_filename=version_filename,
                     output_directory=output_directory, log_directory=log_directory, no_date=no_date,
                     tag=tag, charset=charset, sync_auto_inc=sync_auto_inc, sync_comments=sync_comments)
-            except schemaobject.connection.DatabaseError, e:
+            except schemaobject.connection.DatabaseError as e:
                 logging.error("MySQL Error %d: %s (Ignore)" % (e.args[0], e.args[1]))
         return 1
 
@@ -333,7 +332,7 @@ def app(sourcedb='', targetdb='', version_filename=False,
                          "Patch Script: %s\nRevert Script: %s"
                          % (target_obj.host, target_obj.selected.name,
                             p_buffer.name, r_buffer.name))
-        except OSError, e:
+        except OSError as e:
             p_buffer.delete()
             r_buffer.delete()
             logging.error("Failed writing migration scripts. %s" % e)
@@ -345,11 +344,11 @@ def app(sourcedb='', targetdb='', version_filename=False,
 def main():
     try:
         sys.exit(parse_cmd_line(app)())
-    except schemaobject.connection.DatabaseError, e:
+    except schemaobject.connection.DatabaseError as e:
         logging.error("MySQL Error %d: %s" % (e.args[0], e.args[1]))
         sys.exit(1)
     except KeyboardInterrupt:
-        print "Sync Interrupted, Exiting."
+        print("Sync Interrupted, Exiting.")
         sys.exit(1)
 
 
