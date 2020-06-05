@@ -1,9 +1,9 @@
 Project maintaining again. If you want to help us, we really appreciate that.
 
 
-Schema Sync v0.9.5
+Schema Sync v0.9.5 --python3
 +++++++++++++++++++
-a MySQL schema synchronization utility
+a MySQL schema synchronization utility  for python3
 http://mmatuson.github.io/SchemaSync/
 
 
